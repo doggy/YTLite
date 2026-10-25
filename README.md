@@ -1,4 +1,7 @@
 # YouTube Plus (ex. YTLite)
+
+本 fork 已整合 YTLitePlusEXTRA 的打包流程，操作步骤、改动及验证范围见 [EXTRA 本地整合说明](docs/YTLitePlusEXTRA-local.md)。
+
 A flexible enhancer for YouTube on iOS, featuring over hundred customizable options.
 
 ## Table of Contents

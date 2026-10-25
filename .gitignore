@@ -1,3 +1,9 @@
 .theos/
 packages/
 .DS_Store
+
+# Local validation and downloaded build inputs
+__pycache__/
+*.py[cod]
+*.ipa
+*.deb

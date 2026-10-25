@@ -6,32 +6,26 @@ on:
       enable_youpip:
         type: boolean
         required: true
-        default: false
 
       enable_ytuhd:
         type: boolean
         required: true
-        default: false
 
       enable_yq:
         type: boolean
         required: true
-        default: false
 
       enable_ryd:
         type: boolean
         required: true
-        default: false
 
       enable_ytabc:
         type: boolean
         required: true
-        default: false
 
       enable_demc:
         type: boolean
         required: true
-        default: false
 
       tweak_version:
         type: string
@@ -207,8 +201,8 @@ jobs:
       - name: Clone Open in YouTube (Safari extension)
         run: |
           git clone --quiet -n --depth=1 --filter=tree:0 https://github.com/BillyCurtis/OpenYouTubeSafariExtension
-          cd OpenYoutubeSafariExtension
-          git sparse-checkout set --no-cone OpenYoutubeSafariExtension.appex
+          cd OpenYouTubeSafariExtension
+          git sparse-checkout set --no-cone OpenYouTubeSafariExtension.appex
           git checkout
           mv *.appex ..
 
