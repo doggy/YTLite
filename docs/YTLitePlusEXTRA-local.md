@@ -56,3 +56,12 @@ EXTRA 工作流现使用历史 EXTRA cracked 流程引用的固定 `.deb`（包�
 - `git diff --check` 通过。
 
 尚未进行完整插件编译、真实 IPA 注入、签名、设备安装和播放测试。动态拉取的插件源码仍可能发生依赖或兼容性变化，配置检查通过不能替代首次 GitHub Actions 构建。
+
+## 2026-10-26 构建修复：Gonerino 缺少 Go
+
+运行 `40220282287` 在 Gonerino 的 `before-all` 步骤报 `/bin/bash: go: command not found`，尚未进入该插件的编译。
+两套 EXTRA 工作流均在构建 Gonerino 前增加 `actions/setup-go@v7`，固定 Go `1.26.8`。
+该插件通过 `go run scripts/generate_changelog_header.go` 生成更新日志头文件，不使用 Go modules，因此关闭 setup-go 的模块缓存。
+此修复只补齐已确认缺失的工具，不代表后续编译、IPA 注入或设备兼容性已通过。
+
+验证：Actions 配置和 Shell 语法检查通过；本地使用经官方 SHA256 校验的 Go 1.26.8 实际运行 Gonerino 原始生成脚本，成功生成 `ChangelogData.h`，内容与 CHANGELOG.md 的预期转义结果一致。后续插件编译仍需新一次 Actions 运行验证。

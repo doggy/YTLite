@@ -281,6 +281,12 @@ jobs:
           make clean package DEBUG=0 FINALPACKAGE=1 THEOS_PACKAGE_SCHEME=rootless
           mv packages/*.deb ${{ github.workspace }}/youshare.deb
 
+      - name: Set up Go for Gonerino
+        uses: actions/setup-go@v7
+        with:
+          go-version: '1.26.8'
+          cache: false
+
       - name: Build Gonerino
         run: |
           cd Gonerino
