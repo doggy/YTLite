@@ -1,16 +1,10 @@
-name: Build YTLitePlusEXTRA IPA
+name: Build YTLitePlusEXTRA IPA (Cracked)
 on:
   workflow_dispatch:
     inputs:
       ipa_url:
         description: "URL to the decrypted IPA file"
         default: ""
-        required: true
-        type: string
-
-      ytlite_version:
-        description: "YTLite Version (You can enter the version manually from YTLite releases or leave default.)"
-        default: "5.2.2"
         required: true
         type: string
 
@@ -42,7 +36,10 @@ env:
   IPA_URL: ${{ inputs.ipa_url }}
   DISPLAY_NAME: ${{ inputs.display_name }}
   BUNDLE_ID: ${{ inputs.bundle_id }}
-  YTLITE_VERSION: ${{ inputs.ytlite_version }}
+  # Version reported by the pinned package; its exact binary base is unconfirmed.
+  YTLITE_VERSION: "5.2.1"
+  YTLITE_DEB_URL: "https://files.catbox.moe/l2pfst.deb"
+  YTLITE_DEB_SHA256: "2c2cd90394625f8b830aaa5669337a21482590639043222c93bfcd830b0e09a1"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -50,7 +47,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build YTLitePlusEXTRA IPA
+    name: Build YTLitePlusEXTRA IPA (Cracked)
     runs-on: macos-latest
     permissions:
       contents: write
@@ -62,7 +59,7 @@ jobs:
       - name: Hide Sensitive Inputs
         uses: levibostian/action-hide-sensitive-inputs@v1
         with:
-          exclude_inputs: bundle_id,display_name,ytlite_version,demc,volboost
+          exclude_inputs: bundle_id,display_name,demc,volboost
 
       - name: Install MEGA downloader
         if: ${{ startsWith(inputs.ipa_url, 'https://mega.nz/') }}
@@ -150,14 +147,25 @@ jobs:
       - name: Install cyan
         run: pipx install --force https://github.com/asdfzxcvbn/pyzule-rw/archive/main.zip
 
-      - name: Download YTLite .deb
+      # Source: jaydenjcpy/YTLitePlusEXTRA, commit 1994eabe19b819a18d48a35001c522b39c207a9c,
+      # .github/workflows/YTLiteCracked.yml. Keep the digest pinned when using this URL.
+      - name: Download and verify pinned YTLite cracked .deb
         run: |
-          if [[ ! "$YTLITE_VERSION" =~ ^[0-9]+(\.[0-9]+)*([a-zA-Z]+[0-9]*)?$ ]]; then
-            echo "::error::Invalid YTLite version."
-            exit 1
-          fi
-          curl --fail --location --retry 3 --silent --show-error --output ytlite.deb "https://github.com/dayanch96/YTLite/releases/download/v${YTLITE_VERSION}/com.dvntm.ytlite_${YTLITE_VERSION}_iphoneos-arm64.deb"
+          curl --fail --location --retry 3 --silent --show-error --output ytlite.deb "$YTLITE_DEB_URL"
+          python3 - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+
+          actual = hashlib.sha256(Path("ytlite.deb").read_bytes()).hexdigest()
+          if actual != os.environ["YTLITE_DEB_SHA256"]:
+              raise SystemExit("SHA256 mismatch: downloaded YTLite deb differs from the reviewed file")
+          print("YTLite deb SHA256 verified")
+          PY
           dpkg-deb --info ytlite.deb > /dev/null
+          test "$(dpkg-deb --field ytlite.deb Package)" = "com.dvntm.ytlite"
+          test "$(dpkg-deb --field ytlite.deb Version)" = "$YTLITE_VERSION"
+          test "$(dpkg-deb --field ytlite.deb Architecture)" = "iphoneos-arm"
 
       - name: Clone Open in YouTube (Safari Extension)
         run: |
@@ -307,14 +315,14 @@ jobs:
             echo "::error::No tweak packages were built."
             exit 1
           fi
-          cyan -i youtube.ipa -o "YTLitePlusEXTRA_${YT_VERSION}_v${YTLITE_VERSION}.ipa" -uwef "${tweaks[@]}" -n "$DISPLAY_NAME" -b "$BUNDLE_ID"
+          cyan -i youtube.ipa -o "YTLitePlusEXTRA_${YT_VERSION}_v${YTLITE_VERSION}_cracked.ipa" -uwef "${tweaks[@]}" -n "$DISPLAY_NAME" -b "$BUNDLE_ID"
 
       - name: Create a Draft Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ytliteplusextra-ipa${{ github.run_number }}
-          name: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }} (${{ github.run_number }})
-          files: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ inputs.ytlite_version }}.ipa
+          tag_name: ytliteplusextra-cracked-ipa${{ github.run_number }}
+          name: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ env.YTLITE_VERSION }}_cracked (${{ github.run_number }})
+          files: YTLitePlusEXTRA_${{ env.YT_VERSION }}_v${{ env.YTLITE_VERSION }}_cracked.ipa
           fail_on_unmatched_files: true
           draft: true
 
